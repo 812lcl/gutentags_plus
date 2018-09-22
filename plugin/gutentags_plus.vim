@@ -9,12 +9,6 @@
 
 let s:windows = has('win32') || has('win64') || has('win16') || has('win95')
 
-if v:version >= 800
-	set cscopequickfix=s+,c+,d+,i+,t+,e+,g+,f+,a+
-else
-	set cscopequickfix=s+,c+,d+,i+,t+,e+,g+,f+
-endif
-
 let g:gutentags_auto_add_gtags_cscope = 0
 
 
@@ -158,44 +152,6 @@ command! -nargs=0 GscopeAdd call s:GscopeAdd()
 
 
 "----------------------------------------------------------------------
-" open quickfix
-"----------------------------------------------------------------------
-function! s:quickfix_open(size)
-	function! s:WindowCheck(mode)
-		if &buftype == 'quickfix'
-			let s:quickfix_open = 1
-			let s:quickfix_wid = winnr()
-			return
-		endif
-		if a:mode == 0
-			let w:quickfix_save = winsaveview()
-		else
-			if exists('w:quickfix_save')
-				call winrestview(w:quickfix_save)
-				unlet w:quickfix_save
-			endif
-		endif
-	endfunc
-	let s:quickfix_open = 0
-	let l:winnr = winnr()			
-	noautocmd windo call s:WindowCheck(0)
-	noautocmd silent! exec ''.l:winnr.'wincmd w'
-	if s:quickfix_open != 0
-		if get(g:, 'gutentags_plus_switch', 0) != 0
-			noautocmd silent! exec ''.s:quickfix_wid.'wincmd w'
-		endif
-		return
-	endif
-	exec 'botright copen '. ((a:size > 0)? a:size : '')
-	noautocmd windo call s:WindowCheck(1)
-	noautocmd silent! exec ''.l:winnr.'wincmd w'
-	if get(g:, 'gutentags_plus_switch', 0) != 0
-		noautocmd silent! exec ''.s:quickfix_wid.'wincmd w'
-	endif
-endfunc
-
-
-"----------------------------------------------------------------------
 " Find search
 "----------------------------------------------------------------------
 function! s:GscopeFind(bang, what, ...)
@@ -282,7 +238,6 @@ function! s:GscopeFind(bang, what, ...)
 	endif
 	if success != 0 && a:bang == 0
 		let height = get(g:, 'gutentags_plus_height', 6)
-		call s:quickfix_open(height)
 	endif
 endfunc
 
@@ -299,24 +254,3 @@ function! s:GscopeKill()
 endfunc
 
 command! -nargs=0 GscopeKill call s:GscopeKill()
-
-
-
-"----------------------------------------------------------------------
-" setup keymaps
-"----------------------------------------------------------------------
-if get(g:, 'gutentags_plus_nomap', 0) == 0
-	noremap <silent> <leader>cs :GscopeFind s <C-R><C-W><cr>
-	noremap <silent> <leader>cg :GscopeFind g <C-R><C-W><cr>
-	noremap <silent> <leader>cc :GscopeFind c <C-R><C-W><cr>
-	noremap <silent> <leader>ct :GscopeFind t <C-R><C-W><cr>
-	noremap <silent> <leader>ce :GscopeFind e <C-R><C-W><cr>
-	noremap <silent> <leader>cf :GscopeFind f <C-R>=expand("<cfile>")<cr><cr>
-	noremap <silent> <leader>ci :GscopeFind i <C-R>=expand("<cfile>")<cr><cr>
-	noremap <silent> <leader>cd :GscopeFind d <C-R><C-W><cr>
-	noremap <silent> <leader>ca :GscopeFind a <C-R><C-W><cr>
-	noremap <silent> <leader>ck :GscopeKill<cr>
-endif
-
-
-
